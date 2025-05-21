@@ -169,4 +169,4 @@ app.add_handler(CommandHandler("startquiz", start_quiz))
 app.add_handler(CallbackQueryHandler(button_handler))
 
 # 🔁 Start polling and launch startup jobs
-app.run_polling(on_startup=on_startup)
+app.run_polling()
