@@ -16,33 +16,36 @@ trivia_list = [
     "What is en passant? A special pawn capture move.",
     "How many squares are on a chessboard? Answer: 64."
 ]
+
 def get_main_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("Start Quiz", callback_data='start')],
         [InlineKeyboardButton("About", callback_data='about')],
-            ])
+    ])
+
+def get_welcome_text_and_markup():
+    welcome_text = (
+        "♟️ *Welcome to Quizpawn Bot!* 🧠\n\n"
+        "Your ultimate Chess Quiz companion for group battles!\n\n"
+        "👥 *Add me to your group* and I will:\n"
+        "🔁 Drop a new chess question every 30 minutes\n"
+        "♟️ Sharpen your skills with fun and tricky puzzles\n"
+        "🧠 Make your group smarter, one move at a time!\n\n"
+        "🏁 *Ready to play?* Just add me to your group now!"
+    )
+
+    keyboard = [
+        [InlineKeyboardButton("Join Support Channel", url=SUPPORT_CHANNEL)],
+        [InlineKeyboardButton("About", callback_data="about")],
+        [InlineKeyboardButton("Contact Developer", url=DEV_CONTACT)]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    return welcome_text, reply_markup
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type == "private":
-        welcome_text = (
-            "♟️ *Welcome to Quizpawn Bot!* 🧠\n\n"
-            "Your ultimate Chess Quiz companion for group battles!\n\n"
-            "👥 *Add me to your group* and I will:\n"
-            "🔁 Drop a new chess question every 30 minutes\n"
-            "♟️ Sharpen your skills with fun and tricky puzzles\n"
-            "🧠 Make your group smarter, one move at a time!\n\n"
-            "🏁 *Ready to play?* Just add me to your group now!"
-        )
-
-        keyboard = [
-            [InlineKeyboardButton("Join Support Channel", url=SUPPORT_CHANNEL)],
-            [InlineKeyboardButton("About", callback_data="about")],
-            [InlineKeyboardButton("Contact Developer", url=DEV_CONTACT)]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
+        welcome_text, reply_markup = get_welcome_text_and_markup()
         await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
-
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -51,26 +54,26 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "about":
         await query.edit_message_text(
             text="*About Quizpawn Bot*(@quizpawnbot)\n\n🧠"
-"Welcome to ThinkChessy, your ultimate chess quiz companion \n"
-"♟️We bring the world of chess to life through fun, engaging, and challenging quizzes — perfect for casual players, learners, and chess masters alike!\n"
-
-"\n➤ Sends automatic chess quizzes every 30 minutes in group chats"
-"\n➤ Covers everything from classic tactics to modern legends"
-"\n➤ Easy to set up with the /settings command"
-
-"Challenge your friends, sharpen your skills, and rule the 64 squares with brains and strategy."
-"Let the game begin!",
+                 "Welcome to ThinkChessy, your ultimate chess quiz companion \n"
+                 "♟️We bring the world of chess to life through fun, engaging, and challenging quizzes — perfect for casual players, learners, and chess masters alike!\n"
+                 "\n➤ Sends automatic chess quizzes every 30 minutes in group chats"
+                 "\n➤ Covers everything from classic tactics to modern legends"
+                 "\n➤ Easy to set up with the /settings command\n\n"
+                 "Challenge your friends, sharpen your skills, and rule the 64 squares with brains and strategy.\n"
+                 "Let the game begin!",
             parse_mode="Markdown",
-reply_markup=InlineKeyboardMarkup([
-[InlineKeyboardButton("Back", callback_data="main_menu")]
-])
-            )
-    elif query.data == "main_menu":
-        await query.edit_message_text(
-            text="Welcome back to main menu!",
-            reply_markup=get_main_menu()
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("Back", callback_data="main_menu")]
+            ])
         )
 
+    elif query.data == "main_menu":
+        welcome_text, reply_markup = get_welcome_text_and_markup()
+        await query.edit_message_text(
+            text=welcome_text,
+            reply_markup=reply_markup,
+            parse_mode="Markdown"
+        )
 
 async def send_trivia(context: ContextTypes.DEFAULT_TYPE):
     group_id = context.job.chat_id
