@@ -9,6 +9,9 @@ BOT_TOKEN = "7656183181:AAFilkbWdCR-2L36VSdAh5UC0YP0jkM9aO8"
 SUPPORT_CHANNEL = "https://t.me/quizpawn"
 DEV_CONTACT = "https://t.me/ragequit3"
 
+# ⬅️ Replace with your actual group chat ID
+GROUP_CHAT_ID = -1002551239793
+
 # ✅ Trivia data with options
 trivia_list = [
     {
@@ -43,14 +46,12 @@ trivia_list = [
     }
 ]
 
-# Main menu
 def get_main_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("Start Quiz", callback_data='start')],
         [InlineKeyboardButton("About", callback_data='about')],
     ])
 
-# Welcome text and buttons
 def get_welcome_text_and_markup():
     welcome_text = (
         "♟️ *Welcome to Quizpawn Bot!* 🧠\n\n"
@@ -70,32 +71,28 @@ def get_welcome_text_and_markup():
     reply_markup = InlineKeyboardMarkup(keyboard)
     return welcome_text, reply_markup
 
-# /start for private chats
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type == "private":
         welcome_text, reply_markup = get_welcome_text_and_markup()
         await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
 
-# /startquiz for groups
 async def start_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     if chat.type in ["group", "supergroup"]:
         job_name = str(chat.id)
-        # Prevent duplicate jobs
         existing_jobs = context.job_queue.get_jobs_by_name(job_name)
         if existing_jobs:
             await update.message.reply_text("⚠️ Quiz is already running in this group.")
             return
         context.job_queue.run_repeating(
             send_trivia,
-            interval=60,
+            interval=1800,  # 30 minutes
             first=5,
             chat_id=chat.id,
             name=job_name
         )
-        await update.message.reply_text("✅ Quizpawn activated! I’ll send chess questions every 1 minute!")
+        await update.message.reply_text("✅ Quizpawn activated! I’ll send chess questions every 30 minutes!")
 
-# Callback handler for buttons
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -132,7 +129,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_text = f"❌ Wrong! The correct answer was *{correct}*."
         await query.edit_message_text(text=reply_text, parse_mode="Markdown")
 
-# Trivia sender function
 async def send_trivia(context: ContextTypes.DEFAULT_TYPE):
     group_id = context.job.chat_id
     trivia = random.choice(trivia_list)
@@ -153,9 +149,24 @@ async def send_trivia(context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
+# 🆕 Automatically start quiz loop at launch
+async def startup_quiz(context: ContextTypes.DEFAULT_TYPE):
+    context.job_queue.run_repeating(
+        send_trivia,
+        interval=1800,  # 30 minutes
+        first=5,
+        chat_id=GROUP_CHAT_ID,
+        name="auto_quiz"
+    )
+
+async def on_startup(app):
+    await startup_quiz(app)
+
 # Start the bot
 app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(CommandHandler("start", start))  # for private chats
-app.add_handler(CommandHandler("startquiz", start_quiz))  # for group quiz start
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("startquiz", start_quiz))
 app.add_handler(CallbackQueryHandler(button_handler))
-app.run_polling()
+
+# 🔁 Start polling and launch startup jobs
+app.run_polling(on_startup=on_startup)
