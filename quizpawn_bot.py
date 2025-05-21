@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = "7656183181:AAFilkbWdCR-2L36VSdAh5UC0YP0jkM9aO8"
 SUPPORT_CHANNEL = "https://t.me/quizpawn"
 DEV_CONTACT = "https://t.me/ragequit3"
-GROUP_CHAT_ID = -1002551239793  # Replace with your actual group chat ID
+GROUP_CHAT_ID = -1002492210221  # Replace with your actual group chat ID
 
 trivia_list = [
     {
